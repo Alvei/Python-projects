@@ -1,7 +1,6 @@
 """ math_lib.py """
-from math import sqrt
-from typing import List, Set
-from typing import Tuple, Optional  # Optional necessary when None or int
+from math import sqrt, factorial, comb
+from typing import List, Tuple, Optional  # Optional necessary when None or int
 
 # import sys
 # sys.setrecursionlimit(20000)
@@ -161,9 +160,9 @@ def sift(number: int, num_list: list) -> List[int]:
 
 
 def prime_sieve(num_list: list) -> List[int]:
-    """ Returns list of prime number using sieve algo which eliminates multiples
-        of any prime found to speed up implementation.
-        Assumes 1st number is a prime so works if start at 2. """
+    """Returns list of prime number using sieve algo which eliminates multiples
+    of any prime found to speed up implementation.
+    Assumes 1st number is a prime so works if start at 2."""
 
     assert (len(num_list) - 1) < MAX_SIEVE
 
@@ -179,6 +178,32 @@ def prime_sieve(num_list: list) -> List[int]:
     return [prime] + prime_sieve(sift(prime, num_list[1:]))
 
 
+def my_combination(item_n: int, group_r: int) -> float:
+    """ Function that implements the basic combination.
+        item_n:  total number of items
+        group_r: size of group taken each time. """
+
+    assert isinstance(item_n, int) and isinstance(group_r, int)
+    assert (item_n - group_r) > 0  # myCombination() input test
+
+    return factorial(item_n) / (factorial(group_r) * factorial(item_n - group_r))
+
+
+def my_binomial_prob(prob: float, k: int, num_trial: int) -> float:
+    """ Function that calculates a single Binomial Proabability.
+        k:   number of successes
+        n-k: number of failures """
+
+    assert (num_trial - k) > 0  # my_combination() input test
+    assert isinstance(num_trial, int) and isinstance(k, int)
+    assert isinstance(prob, float)
+
+    failure_q = 1 - prob  # probability of failure
+
+    ans = my_combination(num_trial, k) * prob ** k * failure_q ** (num_trial - k)
+    return ans
+
+
 def main():
     """ Main code """
     min_div, max_div = find_extreme_divisors(100, 200)
@@ -188,6 +213,15 @@ def main():
     print(f"\n# Prime [2, 500]: {len(list_primes(2, 499))} => Answer 94")
     print(f"# Prime [2, 500]: {len(list_primes_sqrt(2, 499))} => Answer 94")
     print(f"# Prime [2, 500]: {len(prime_sieve(range(2, 499)))} => Answer 94")
+
+    prob = 0.1
+    k = 1  # number of success
+    num = 5  # number of trials
+
+    # Build a list of probabilities if you try n times
+    print(my_combination(7, 5), comb(7, 5))
+    ans = [my_binomial_prob(prob, k, index) for index in range(2, num + 1)]
+    print(f"\n{ans}")
 
 
 if __name__ == "__main__":
