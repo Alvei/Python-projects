@@ -204,6 +204,22 @@ def my_binomial_prob(prob: float, k: int, num_trial: int) -> float:
     return ans
 
 
+def sum_digit(number: int) -> int:
+    """ Function to add the digits. """
+    assert isinstance(number, int)
+
+    if number > 0:
+        str_number = str(number)
+        sum2 = sum([int(char) for char in str_number])
+    else:
+        number = abs(number)
+        str_number = str(number)
+        sum2 = sum([int(char) for char in str_number])
+        sum2 = -1 * sum2
+
+    return sum2
+
+
 def main():
     """ Main code """
     min_div, max_div = find_extreme_divisors(100, 200)
@@ -222,6 +238,10 @@ def main():
     print(my_combination(7, 5), comb(7, 5))
     ans = [my_binomial_prob(prob, k, index) for index in range(2, num + 1)]
     print(f"\n{ans}")
+
+    numbers = [52, 1246, -123]
+    for num in numbers:
+        print(f"Sum_digit({num}) = {sum_digit(num)}")
 
 
 if __name__ == "__main__":
