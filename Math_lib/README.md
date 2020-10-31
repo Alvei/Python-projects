@@ -1,6 +1,7 @@
 # math_lip.py
 * **find_divisors():** Find the common divisors of number1 and number2. Assumes that number1 and number2 are positive ints. Returns a tuple containing all common divisors.
 * **find_extreme_divisors():** Find the smallest and largest common divisors of number1 and number2 other than 1. Assumes that number1 and number2 are positive ints.
+* **sum_digit():** Add all the digits of an integer.
 * **my_combination():** Basic combinatorial.
 * **my_binomial():** Basic binomical function.
 

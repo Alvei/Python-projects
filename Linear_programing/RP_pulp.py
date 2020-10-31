@@ -1,7 +1,8 @@
+""" Linear programing in Python. Inspired by RealPython. """
 from pulp import LpMaximize, LpProblem, LpStatus, lpSum, LpVariable
 
 
-def main():
+def simple():
     # Create the model
     model = LpProblem(name="small-problem", sense=LpMaximize)
 
@@ -9,10 +10,9 @@ def main():
     x = LpVariable(name="x", lowBound=0)
     y = LpVariable(name="y", lowBound=0)
 
-    expression = 2 * x + 4 * y
-
-    constraint = 2 * x + 4 * y >= 8
-    print(type(expression), type(constraint))
+    # expression = 2 * x + 4 * y
+    # constraint = 2 * x + 4 * y >= 8
+    # print(f"{type(expression)}\n{type(constraint)}")
 
     # Add the constraints to the model
     model += (2 * x + y <= 20, "red_constraint")
@@ -24,16 +24,43 @@ def main():
     obj_func = x + 2 * y
     model += obj_func
 
-    print(model)
+    # print(model)
     status = model.solve()
+    return model
+
+
+def simple2():
+    # Define the model
+    model = LpProblem(name="resource-allocation", sense=LpMaximize)
+
+    # Define the decision variables
+    x = {i: LpVariable(name=f"x{i}", lowBound=0) for i in range(1, 5)}
+
+    # Add constraints
+    model += (lpSum(x.values()) <= 50, "manpower")
+    model += (3 * x[1] + 2 * x[2] + x[3] <= 100, "material_a")
+    model += (x[2] + 2 * x[3] + 3 * x[4] <= 90, "material_b")
+
+    # Set the objective
+    model += 20 * x[1] + 12 * x[2] + 40 * x[3] + 25 * x[4]
+
+    # Solve the optimization problem
+    status = model.solve()
+    return model
+
+
+def main():
+    # model = simple()
+    model = simple2()
 
     print(f"status: {model.status}, {LpStatus[model.status]}")
     print(f"objective: {model.objective.value():.2e}")
+
     for var in model.variables():
-        print(f"{var.name}: {var.value():.2e}")
+        print(f"{var.name}:\t{var.value():.2e}")
 
     for name, constraint in model.constraints.items():
-        print(f"{name}: {constraint.value():.2e}")
+        print(f"{name}:\t{constraint.value():.2e}")
 
 
 if __name__ == "__main__":

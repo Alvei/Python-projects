@@ -179,9 +179,9 @@ def prime_sieve(num_list: list) -> List[int]:
 
 
 def my_combination(item_n: int, group_r: int) -> float:
-    """ Function that implements the basic combination.
-        item_n:  total number of items
-        group_r: size of group taken each time. """
+    """Function that implements the basic combination.
+    item_n:  total number of items
+    group_r: size of group taken each time."""
 
     assert isinstance(item_n, int) and isinstance(group_r, int)
     assert (item_n - group_r) > 0  # myCombination() input test
@@ -190,9 +190,9 @@ def my_combination(item_n: int, group_r: int) -> float:
 
 
 def my_binomial_prob(prob: float, k: int, num_trial: int) -> float:
-    """ Function that calculates a single Binomial Proabability.
-        k:   number of successes
-        n-k: number of failures """
+    """Function that calculates a single Binomial Proabability.
+    k:   number of successes
+    n-k: number of failures"""
 
     assert (num_trial - k) > 0  # my_combination() input test
     assert isinstance(num_trial, int) and isinstance(k, int)
