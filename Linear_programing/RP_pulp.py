@@ -3,6 +3,7 @@ from pulp import LpMaximize, LpProblem, LpStatus, lpSum, LpVariable
 
 
 def simple():
+    """ First RP example """
     # Create the model
     model = LpProblem(name="small-problem", sense=LpMaximize)
 
@@ -30,6 +31,7 @@ def simple():
 
 
 def simple2():
+    """ Second RP example. """
     # Define the model
     model = LpProblem(name="resource-allocation", sense=LpMaximize)
 
@@ -60,18 +62,19 @@ def simple3():
         min sum(f_j * y_j) + sum(sum(c_ij*x_ij))
     where x_ij is the ammount service  from facility j to point i and y_j is facility j
     https://scipbook.readthedocs.io/en/latest/flp.html  inspired by youtube Caylie Cincera.
+
     answer:
-    objective is 5610$
+    objective =>  $5610
     should be keep Facility 2 and 3 open while closing Facility 1
-    Volume transported to Facility 2 is 80, 270 and 150 from customer 1, 2, and 3
-    Volume transported to Facility 3 is 100, 160, 180  from customer 3, 4, and 5
+    Volume transported from Facility 2 is 80, 270 and 150 from customer 1, 2, and 3
+    Volume transported from Facility 3 is 100, 160, 180  from customer 3, 4, and 5
     """
     CUSTOMERS = [1, 2, 3, 4, 5]  # C_i
     FACILITY = ["FAC_1", "FAC_2", "FAC_3"]  # Facility_j
 
     demand = {1: 80, 2: 270, 3: 250, 4: 160, 5: 180}  # Annual demand d_i
 
-    actcost = {"FAC_1": 1000, "FAC_2": 1000, "FAC_3": 1000}  # Activation cost  f_j
+    actcost = {"FAC_1": 1000, "FAC_2": 1000, "FAC_3": 1000}  # Activation cost f_j
     maxam = {"FAC_1": 500, "FAC_2": 500, "FAC_3": 500}  # Max volume M_j
 
     transp = {
@@ -91,6 +94,7 @@ def simple3():
     )
 
     # Set objective function
+    # Need to do transp[j][i] because of the way the dictionary was setup
     prob += lpSum(actcost[j] * use_vars[j] for j in FACILITY) + lpSum(
         transp[j][i] * serv_vars[(i, j)] for j in FACILITY for i in CUSTOMERS
     )
@@ -110,7 +114,30 @@ def simple3():
     return prob
 
 
-def print_model_basic(model):
+def simple4():
+    """GIAPETTO chair manufacturing example
+    x1: number of chairs produce each week
+    x2: number of tables produced each week
+    max: z  = 20 * x1 + 30 * x2 where the scalar are the profit per unit
+    s.t. x1 + 2 * x2 <= 100 (finishing hours)
+        2 * x1 + x2 <= 100 (carpentry hours)
+        x1 >= 0 (sign restriction)
+        x2 >= 0 (sign restriction)
+    inspired from Yong Wang"""
+
+    prob = LpProblem("Giapetto", LpMaximize)  # Define model
+    x1 = LpVariable("X1", lowBound=0)  # Create x1 >=0
+    x2 = LpVariable("X2", lowBound=0)  # Create x2 >=0
+
+    prob += 20 * x1 + 30 * x2  # Objective function
+    prob += x1 + 2 * x2 <= 100  # Finishing hours
+    prob += 2 * x1 + x2 <= 100  # Carpentry hours
+    prob.solve()
+    return prob
+
+
+def print_model_basic(model) -> None:
+    """ Print all the key results with no formating. """
     print(f"status: {model.status}, {LpStatus[model.status]}")
     print(f"objective: {model.objective.value()}")
 
@@ -121,7 +148,8 @@ def print_model_basic(model):
         print(f"{name}:\t{constraint.value()}")
 
 
-def print_model_scientifc(model):
+def print_model_scientifc(model) -> None:
+    """ Print all the key results with no scientif formating. """
     print(f"status: {model.status}, {LpStatus[model.status]}")
     print(f"objective: {model.objective.value():.2e}")
 
@@ -133,9 +161,7 @@ def print_model_scientifc(model):
 
 
 def main():
-    # model = simple()
-    model = simple3()
-
+    model = simple4()
     print_model_basic(model)
 
 
