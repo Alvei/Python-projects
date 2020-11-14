@@ -2,8 +2,11 @@
 from pulp import LpMaximize, LpProblem, LpStatus, lpSum, LpVariable
 
 
-def simple():
-    """ First RP example """
+def simple1():
+    """ First RP example 
+        status: 1, Optimal, objective: 16.81818
+        x: 7.27, y: 4.54
+        red: 0, blue, 18.18, yellow: 3.363, green: 0"""
     # Create the model
     model = LpProblem(name="small-problem", sense=LpMaximize)
 
@@ -31,11 +34,14 @@ def simple():
 
 
 def simple2():
-    """ Second RP example. """
+    """ Second RP example.
+    status: 1, Optimal   objective: 1900
+    x1: 5, x2: 0, x3: 45 and x4:0
+    manpower: 0, material_a: -40, material_b: 0"""
     # Define the model
     model = LpProblem(name="resource-allocation", sense=LpMaximize)
 
-    # Define the decision variables
+    # Define the decision variables using dictionary comprehension
     x = {i: LpVariable(name=f"x{i}", lowBound=0) for i in range(1, 5)}
 
     # Add constraints
@@ -52,15 +58,18 @@ def simple2():
 
 
 def simple3():
-    """Facility location problem using mixed integer variable. The objective is to choose the best among potential sites,
-    subject to constraints requiring that demands at several points mut be serviced by the established facilities.
-    The company has 3 potential sites for installing its facilities/warehouses and five demand points.
-    Each site j has a yearly activation cost fj, i.e., an annual leasing expense that is incurred for using it, independnt of volume.
+    """ Facility location problem using mixed integer variable. Objective is to choose the best sites,
+    s.t. constraints that demands at several points mut be serviced by the established facilities.
+    Company has 3 potential sites for installing its facilities/warehouses and 5 demand points.
+    Each site j has a yearly activation cost fj,
+         i.e., an annual leasing expense that is incurred for using it, independent of volume.
     Volume is limited to a maximum yearly amount Mj.
-    There are transportation cost Cij per unit service from facility j to the demand point i.
-    Objective is to minimize the sum of facility activation costs and transportation costs.
-        min sum(f_j * y_j) + sum(sum(c_ij*x_ij))
-    where x_ij is the ammount service  from facility j to point i and y_j is facility j
+    Transportation cost Cij per unit service from facility j to the demand point i.
+    Objective: minimize the sum of facility activation costs and transportation costs.
+        min [ sum(f_j * y_j) + sum(sum(c_ij * x_ij)) ]
+    where
+         x_ij is the ammount service  from facility j to point
+         y_j is facility j
     https://scipbook.readthedocs.io/en/latest/flp.html  inspired by youtube Caylie Cincera.
 
     answer:
@@ -86,8 +95,7 @@ def simple3():
     # Initialize the model
     prob = LpProblem("FacilityLocation")
 
-    # Set decision variables
-    # Binary decision variables, x_ij
+    # Set binary decision variables, x_ij
     use_vars = LpVariable.dicts("UseLocation", FACILITY, 0, 1, "Binary")
     serv_vars = LpVariable.dicts(
         "Service", [(i, j) for i in CUSTOMERS for j in FACILITY], lowBound=0
@@ -120,10 +128,11 @@ def simple4():
     x2: number of tables produced each week
     max: z  = 20 * x1 + 30 * x2 where the scalar are the profit per unit
     s.t. x1 + 2 * x2 <= 100 (finishing hours)
-        2 * x1 + x2 <= 100 (carpentry hours)
+         2 * x1 + x2 <= 100 (carpentry hours)
         x1 >= 0 (sign restriction)
         x2 >= 0 (sign restriction)
-    inspired from Yong Wang"""
+    inspired from Yong Wang.
+    ans: obj: 1666, X1: 33.33, X2; 33.33 """
 
     prob = LpProblem("Giapetto", LpMaximize)  # Define model
     x1 = LpVariable("X1", lowBound=0)  # Create x1 >=0
@@ -142,10 +151,12 @@ def print_model_basic(model) -> None:
     print(f"objective: {model.objective.value()}")
 
     for var in model.variables():
-        print(f"{var.name}:\t{var.value()}")
+        if var.value() != 0.0:
+            print(f"{var.name}:\t{var.value()}")
 
     for name, constraint in model.constraints.items():
-        print(f"{name}:\t{constraint.value()}")
+        if constraint.value() != 0.0:
+            print(f"{name}:\t{constraint.value()}")
 
 
 def print_model_scientifc(model) -> None:
@@ -154,10 +165,12 @@ def print_model_scientifc(model) -> None:
     print(f"objective: {model.objective.value():.2e}")
 
     for var in model.variables():
-        print(f"{var.name}:\t{var.value():.2e}")
+        if var.value() != 0.0:
+            print(f"{var.name}:\t{var.value():.2e}")
 
     for name, constraint in model.constraints.items():
-        print(f"{name}:\t{constraint.value():.2e}")
+        if constraint.value() != 0.0:
+            print(f"{name}:\t{constraint.value():.2e}")
 
 
 def main():
