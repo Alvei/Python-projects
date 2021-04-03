@@ -113,11 +113,34 @@ class DatabaseManager:
 
         return self._execute(query, tuple(criteria.values()),)
 
+    def update(self, table_name: str, criteria: dict, data: dict) -> None:
+        """ Update a bookmark.
+            PARAMETERS:
+                table_name: name of table
+                criteria:
+                data:
+        """
+        update_placeholders = [f"{column} = ?" for column in criteria.keys()]
+        update_criteria = " AND ".join(update_placeholders)
+
+        data_placeholders = ", ".join(f"{key} = ?" for key in data.keys())
+
+        values = tuple(data.values()) + tuple(criteria.values())
+
+        self._execute(
+            f"""
+            UPDATE {table_name}
+            SET {data_placeholders}
+            WHERE {update_criteria};
+            """,
+            values,
+        )
+
 
 def main():
     """ Test harness. """
     database_filename = "dummy_db.db"
-    db = DatabaseManager(database_filename)
+    test_db = DatabaseManager(database_filename)
 
     table_name = "bookmark"
     col_definition = {
@@ -134,10 +157,10 @@ def main():
     }
     data["date_added"] = datetime.utcnow().isoformat()
 
-    db.create_table(table_name, col_definition)
-    db.add(table_name, data)
-    db.add(table_name, data)
-    db.delete(table_name, {"id": 2})
+    test_db.create_table(table_name, col_definition)
+    test_db.add(table_name, data)
+    test_db.add(table_name, data)
+    test_db.delete(table_name, {"id": 2})
 
 
 if __name__ == "__main__":
