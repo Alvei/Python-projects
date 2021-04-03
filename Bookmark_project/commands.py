@@ -7,10 +7,11 @@
 
 import sys
 from datetime import datetime
-import requests
-from typing import Dict, List, Optional
-from database import DatabaseManager  # Persistence layer
 import logging
+from typing import Dict, List, Optional
+import requests
+from database import DatabaseManager  # Persistence layer
+
 
 logging.basicConfig(level=logging.DEBUG)
 # logging.basicConfig(level=logging.CRITICAL)
@@ -38,7 +39,7 @@ class CreateBookmarksTableCommand:
 class AddBookmarkCommand:
     """ Add a bookmark to table that accepts an optional timestamp argument. """
 
-    def execute(self, data: Dict, timestamp: None) -> str:
+    def execute(self, data: Dict, timestamp=None) -> str:
         """ Execute persistent layer command and enrich the data with current time. """
         data["date_added"] = timestamp or datetime.utcnow().isoformat()
         db.add("bookmarks", data)
@@ -58,6 +59,8 @@ class ListBookmarksCommand:
 
 
 class ImportGitHubStarsCommand:
+    """ Command class that imports the URL of repos that are starred for a given users. """
+
     def _extract_bookmark_info(self, repo: dict) -> dict:
         """ Extract the bookmark info from the passed repo dictionary. """
         return {
@@ -71,29 +74,36 @@ class ImportGitHubStarsCommand:
         bookmarks_imported = 0
 
         github_username = data["github_username"]
-
+        # This is the URL of the first page using the username
         next_page_of_results = f"https://api.github.com/users/{github_username}/starred"
 
         while next_page_of_results:
-
+            # Get content of github page using the specified header
             stars_response = requests.get(
                 next_page_of_results,
                 headers={"Accept": "application/vnd.github.v3.star+json"},
+                timeout=3,
             )
 
-            # If the response was successful, no Exception will be raised
+            # Do some basic error checking for requests.get()
             try:
                 stars_response.raise_for_status()
-            except Exception as err:
-                print(f"\nError occurred: {err}\n")  # Python 3.6
+            except requests.exceptions.HTTPError as errh:
+                print(f"\nA HTTP Error: {errh}\n")
+            except requests.exceptions.ConnectionError as errc:
+                print(f"\nAn Error Connecting: {errc}")
+            except requests.exceptions.Timeout as errt:
+                print(f"\nA Timeout Error: {errt}")
+            except requests.exceptions.RequestException as err:
+                print(f"\nAn unknown Error: {err}")
             else:
-                print(f"Successful request to github: {github_username}\n")
+                print(f"\nSuccessful request to github: {github_username}\n")
 
-            next_page_of_results = stars_response.links.get("next", {}).get("url")
-
+            # Convert the response to json and then loop over each elements
             for repo_info in stars_response.json():
                 repo = repo_info["repo"]
 
+                # If we are using the existing timestamp, convert to same date format
                 if data["preserve_timestamps"]:
                     timestamp = datetime.strptime(
                         repo_info["starred_at"], "%Y-%m-%dT%H:%M:%SZ"
@@ -102,11 +112,14 @@ class ImportGitHubStarsCommand:
                     timestamp = None
 
                 bookmarks_imported += 1
-                AddBookmarkCommand().execute(  # <9>
+                AddBookmarkCommand().execute(
                     self._extract_bookmark_info(repo), timestamp=timestamp,
                 )
 
-        return f"Imported {bookmarks_imported} bookmarks from starred repos!"  # <10>
+            # The "link" header rel=next contains the link to the next page if available
+            next_page_of_results = stars_response.links.get("next", {}).get("url")
+
+        return f"Imported {bookmarks_imported} bookmarks from starred repos!"
 
 
 class DeleteBookmarkCommand:
