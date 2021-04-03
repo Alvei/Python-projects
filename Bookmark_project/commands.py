@@ -1,61 +1,131 @@
-""" Business logic layer.
-    Defines a list of actions that should be executed in response to a user's choice.
+""" Defines a list of actions that should be executed in response to a user's choice.
     By encapsulating the logic of each action as a command Object, and providing a
     consistent way to trigger them via an excute method, these actions can be decoupled
     from the presentation layer.
+    Business logic layer.
 """
 
 import sys
 from datetime import datetime
-from typing import Dict, List
+import requests
+from typing import Dict, List, Optional
 from database import DatabaseManager  # Persistence layer
+import logging
 
-db = DatabaseManager('bookmarks.db')  # Create instance of data base
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.CRITICAL)
+
+db = DatabaseManager("bookmarks.db")  # Create instance of data base
 
 
 class CreateBookmarksTableCommand:
     """ Create a bookmark table. """
+
     def execute(self) -> None:
         """ Execute persistent layer command. That also includes definition of table. """
-        db.create_table('bookmarks', {
-            'id': 'integer primary key autoincrement',
-            'title': 'text not null',
-            'url': 'text not null',
-            'notes': 'text',
-            'date_added': 'text not null',
-        })
+        db.create_table(
+            "bookmarks",
+            {
+                "id": "integer primary key autoincrement",
+                "title": "text not null",
+                "url": "text not null",
+                "notes": "text",
+                "date_added": "text not null",
+            },
+        )
 
 
 class AddBookmarkCommand:
-    """ Add a bookmark to table. """
-    def execute(self, data: Dict) -> str:
+    """ Add a bookmark to table that accepts an optional timestamp argument. """
+
+    def execute(self, data: Dict, timestamp: None) -> str:
         """ Execute persistent layer command and enrich the data with current time. """
-        data['date_added'] = datetime.utcnow().isoformat()
-        db.add('bookmarks', data)
-        return 'Bookmark added!'
+        data["date_added"] = timestamp or datetime.utcnow().isoformat()
+        db.add("bookmarks", data)
+        return "Bookmark added!"
 
 
 class ListBookmarksCommand:
     """ List bookmarks in the db. Need to use fetchall() to iterate over cursor. """
-    def __init__(self, order_by: str = 'date_added') -> None:
+
+    def __init__(self, order_by: str = "date_added") -> None:
         """ Define the ordering method. It does by date by default. """
         self.order_by = order_by
 
     def execute(self) -> List:
         """ Execute persistent layer command. """
-        return db.select('bookmarks', order_by=self.order_by).fetchall()
+        return db.select("bookmarks", order_by=self.order_by).fetchall()
+
+
+class ImportGitHubStarsCommand:
+    def _extract_bookmark_info(self, repo) -> dict:
+        """ Extract the bookmark info from the passed repo. """
+        return {
+            "title": repo["name"],
+            "url": repo["html_url"],
+            "notes": repo["description"],
+        }
+
+    def execute(self, data: dict):
+        """ Requests information from the specified URL and returns bookmark info. """
+        bookmarks_imported = 0
+
+        github_username = data["github_username"]
+        print(f"User {github_username}")
+        next_page_of_results = (
+            f"https://api.github.com/users/{github_username}/starred"  # <2>
+        )
+
+        while next_page_of_results:  # <3>
+            stars_response = requests.get(
+                next_page_of_results,
+                headers={"Accept": "application/vnd.github.v3.star+json"},
+            )
+            logging.debug(f"stars_response: {stars_response}")
+
+            next_page_of_results = stars_response.links.get("next", {}).get("url")
+
+            for repo_info in stars_response.json():
+                repo = repo_info["repo"]  # <6>
+
+                if data["preserve_timestamps"]:
+                    timestamp = datetime.strptime(
+                        repo_info["starred_at"], "%Y-%m-%dT%H:%M:%SZ"  # <7>  # <8>
+                    )
+                else:
+                    timestamp = None
+
+                bookmarks_imported += 1
+                AddBookmarkCommand().execute(  # <9>
+                    self._extract_bookmark_info(repo), timestamp=timestamp,
+                )
+
+        return f"Imported {bookmarks_imported} bookmarks from starred repos!"  # <10>
 
 
 class DeleteBookmarkCommand:
     """ Delete boomark. """
+
     def execute(self, data: int) -> str:
         """ Execute persistent layer command. """
-        db.delete('bookmarks', {'id': data})
-        return 'Bookmark deleted!'
+        db.delete("bookmarks", {"id": data})
+        return "Bookmark deleted!"
+
+
+class EditBookmarkCommand:
+    """ Allows editing of Bookmarks. """
+
+    def execute(self, data: dict) -> str:
+        """ Execute persistent layer command. """
+        db.update(
+            "bookmarks", {"id": data["id"]}, data["update"],
+        )
+        return "Bookmark updated!"
 
 
 class QuitCommand:
     """ Quit program. """
+
     def execute(self):
         """ Use OS command to exit program(). """
         sys.exit()
@@ -64,10 +134,12 @@ class QuitCommand:
 def main():
     """ Test harness. """
 
-    table_name = 'bookmark'
-    data = {'title': 'First Bookmark',
-            'url': 'https://first.com',
-            'notes': 'text',}
+    table_name = "bookmark"
+    data = {
+        "title": "First Bookmark",
+        "url": "https://first.com",
+        "notes": "text",
+    }
 
     CreateBookmarksTableCommand().execute()
     AddBookmarkCommand().execute(data)
@@ -80,5 +152,5 @@ def main():
         print(my_bookmark)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -17,8 +17,8 @@ def print_bookmarks(bookmarks: List) -> None:
 
 
 class Option:
-    """ Pattern: Hooks each menu option up to the command in the logical layer 
-        that it should trigger. 
+    """ Pattern: Hooks each menu option up to the command in the logical layer
+        that it should trigger.
     """
 
     def __init__(self, name: str, command, prep_call: Callable = None) -> None:
@@ -123,6 +123,28 @@ def get_bookmark_id_for_deletion() -> Optional[str]:
     return get_user_input("Enter a bookmark ID to delete ")
 
 
+def get_github_import_options() -> dict:
+    """ Get info on github request. """
+    return {
+        "github_username": get_user_input("GitHub username"),
+        "preserve_timestamps": get_user_input(  #
+            "Preserve timestamps [Y/n]", required=False
+        )
+        in {"Y", "y", None},
+    }
+
+
+def get_new_bookmark_info() -> dict:
+    """ Allows editing of bookmarks. """
+    bookmark_id = get_user_input("Enter a bookmark ID to edit")
+    field = get_user_input("Choose a value to edit (title, URL, notes)")
+    new_value = get_user_input(f"Enter the new value for {field}")
+    return {
+        "id": bookmark_id,
+        "update": {field: new_value},
+    }
+
+
 def loop():
     """ Main loop for the program. """
     clear_screen()
@@ -140,10 +162,20 @@ def loop():
                 "List bookmarks by title",
                 commands.ListBookmarksCommand(order_by="title"),
             ),
+            "E": Option(
+                "Edit a bookmark",
+                commands.EditBookmarkCommand(),
+                prep_call=get_new_bookmark_info,
+            ),
             "D": Option(
                 "Delete a bookmark",
                 commands.DeleteBookmarkCommand(),
                 prep_call=get_bookmark_id_for_deletion,
+            ),
+            "G": Option(  # <4>
+                "Import GitHub stars",
+                commands.ImportGitHubStarsCommand(),
+                prep_call=get_github_import_options,
             ),
             "Q": Option("Quit", commands.QuitCommand()),
         }
@@ -168,6 +200,11 @@ def for_listings_only():
     """ Options listing. """
     options = {
         "A": Option("Add a bookmark", commands.AddBookmarkCommand()),
+        "G": Option(
+            "Import GitHub stars",
+            commands.ImportGitHubStarsCommand(),
+            prep_call=get_github_import_options,
+        ),
         "B": Option("List bookmarks by date", commands.ListBookmarksCommand()),
         "T": Option(
             "List bookmarks by title", commands.ListBookmarksCommand(order_by="title")
