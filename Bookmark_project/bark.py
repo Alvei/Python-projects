@@ -17,7 +17,9 @@ def print_bookmarks(bookmarks: List) -> None:
 
 
 class Option:
-    """ Hook each menu option up to the command it should trigger. """
+    """ Pattern: Hooks each menu option up to the command in the logical layer 
+        that it should trigger. 
+    """
 
     def __init__(self, name: str, command, prep_call: Callable = None) -> None:
         """ Initialize the menu option with its key attributes.
@@ -28,7 +30,9 @@ class Option:
         """
         self.name = name
         self.command = command  # It is an instance of object from the logical layer
-        self.prep_call = prep_call  # Function used to gather data from users
+        self.prep_call = (
+            prep_call  # Function used to gather data from users for specific command
+        )
 
     def _handle_message(self, message: Union[str, List]) -> None:
         """ Print the result of executing the command. """
@@ -38,19 +42,20 @@ class Option:
             print(message)
 
     def choose(self):
-        """ Will be called when the option is chosen by the user. It should
-            1- run the preparation step if any
+        """ Will be called when the option chosen by the user. It should
+            1- Run the preparation step if any
             2- Pass the return value from prep step to specified command.execute()
             3- Print the result of the execution.
                Either the success msg or bookmark results.
         """
-        # message contains the result of the command.execute()
+        # message: contains the result of the command.execute().
+        # It can be run with optional data from prep step
         data = self.prep_call() if self.prep_call else None
         message = self.command.execute(data) if data else self.command.execute()
         self._handle_message(message)
 
     def __str__(self):
-        """ Overload printing. """
+        """ Overload printing to allow printing the command name. """
         return self.name
 
 
@@ -115,7 +120,7 @@ def get_new_bookmark_data() -> Dict:
 
 def get_bookmark_id_for_deletion() -> Optional[str]:
     """ Get ID to delete. """
-    return get_user_input("Enter a bookmark ID to delete")
+    return get_user_input("Enter a bookmark ID to delete ")
 
 
 def loop():
@@ -149,7 +154,7 @@ def loop():
     clear_screen()
     chosen_option.choose()
 
-    _ = input("Press ENTER to return to menu")
+    _ = input("Press ENTER to return to menu ")
 
 
 if __name__ == "__main__":
