@@ -12,8 +12,8 @@ from typing import Dict, List, Optional
 from database import DatabaseManager  # Persistence layer
 import logging
 
-# logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.CRITICAL)
 
 db = DatabaseManager("bookmarks.db")  # Create instance of data base
 
@@ -58,8 +58,8 @@ class ListBookmarksCommand:
 
 
 class ImportGitHubStarsCommand:
-    def _extract_bookmark_info(self, repo) -> dict:
-        """ Extract the bookmark info from the passed repo. """
+    def _extract_bookmark_info(self, repo: dict) -> dict:
+        """ Extract the bookmark info from the passed repo dictionary. """
         return {
             "title": repo["name"],
             "url": repo["html_url"],
@@ -71,26 +71,32 @@ class ImportGitHubStarsCommand:
         bookmarks_imported = 0
 
         github_username = data["github_username"]
-        print(f"User {github_username}")
-        next_page_of_results = (
-            f"https://api.github.com/users/{github_username}/starred"  # <2>
-        )
 
-        while next_page_of_results:  # <3>
+        next_page_of_results = f"https://api.github.com/users/{github_username}/starred"
+
+        while next_page_of_results:
+
             stars_response = requests.get(
                 next_page_of_results,
                 headers={"Accept": "application/vnd.github.v3.star+json"},
             )
-            logging.debug(f"stars_response: {stars_response}")
+
+            # If the response was successful, no Exception will be raised
+            try:
+                stars_response.raise_for_status()
+            except Exception as err:
+                print(f"\nError occurred: {err}\n")  # Python 3.6
+            else:
+                print(f"Successful request to github: {github_username}\n")
 
             next_page_of_results = stars_response.links.get("next", {}).get("url")
 
             for repo_info in stars_response.json():
-                repo = repo_info["repo"]  # <6>
+                repo = repo_info["repo"]
 
                 if data["preserve_timestamps"]:
                     timestamp = datetime.strptime(
-                        repo_info["starred_at"], "%Y-%m-%dT%H:%M:%SZ"  # <7>  # <8>
+                        repo_info["starred_at"], "%Y-%m-%dT%H:%M:%SZ"
                     )
                 else:
                     timestamp = None
