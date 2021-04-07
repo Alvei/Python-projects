@@ -13,8 +13,8 @@ class DatabaseManager:
     """ Class that encapsulates all the persistence layer functionalities. """
 
     def __init__(self, database_path: str) -> None:
-        """ Create and store a sqlite3 connection with path: database_path.
-            File is created automatically it does not already exist on computer.
+        """Create and store a sqlite3 connection with path: database_path.
+        File is created automatically it does not already exist on computer.
         """
         self.connection = sqlite3.connect(database_path)
 
@@ -25,10 +25,10 @@ class DatabaseManager:
     def _execute(self, statement: str, values: Sequence = None) -> sqlite3.Cursor:
         """ Execute a sqlite3 statement using Cursor objects, transaction context,
             and basic security.
-            PARAMETERS:
-                statement: Accepts a statement as a string argument
-                values: Optional placeholder Sequence to help with SQL injection
-            RETURNS: Query results or empty list via a Cursor object.
+        PARAMETERS:
+            statement: Accepts a statement as a string argument
+            values: Optional placeholder Sequence to help with SQL injection
+        RETURNS: Query results or empty list via a Cursor object.
         """
 
         # Creates a transaction context that allows roll-back if an error occurs
@@ -41,10 +41,10 @@ class DatabaseManager:
             return cursor
 
     def create_table(self, table_name: str, columns: Dict[str, str]) -> None:
-        """ Create an sqlite3 table.
-            PARAMETERS:
-                table_name: name of the table
-                columns: dictionary of {column name: data type and constraints}
+        """Create an sqlite3 table.
+        PARAMETERS:
+            table_name: name of the table
+            columns: dictionary of {column name: data type and constraints}
         """
 
         # Constructs the column definitions, with their data types and constraints by unpacking dict
@@ -77,10 +77,10 @@ class DatabaseManager:
         )
 
     def delete(self, table_name: str, criteria: Dict) -> None:
-        """ Delete a row in a table.
-            PARAMETERS:
-                table_name: name of table
-                criteria: a non-optional argument (otherwise all is deleted!)
+        """Delete a row in a table.
+        PARAMETERS:
+            table_name: name of table
+            criteria: a non-optional argument (otherwise all is deleted!)
         """
         placeholders = [f"{column} = ?" for column in criteria.keys()]
         delete_criteria = " AND ".join(placeholders)
@@ -93,11 +93,11 @@ class DatabaseManager:
         )
 
     def select(self, table_name: str, criteria: Dict = None, order_by: str = None):
-        """ Query the database.
-            PARAMETERS:
-                table_name: name of table
-                criteria: Optional dictionary of criteria, it fetches all record by default
-                order_by:
+        """Query the database.
+        PARAMETERS:
+            table_name: name of table
+            criteria: Optional dictionary of criteria, it fetches all record by default
+            order_by:
         """
         criteria = criteria or {}
 
@@ -114,11 +114,11 @@ class DatabaseManager:
         return self._execute(query, tuple(criteria.values()),)
 
     def update(self, table_name: str, criteria: dict, data: dict) -> None:
-        """ Update a bookmark.
-            PARAMETERS:
-                table_name: name of table
-                criteria:
-                data:
+        """Update a bookmark.
+        PARAMETERS:
+            table_name: name of table
+            criteria: The columns to be updated
+            data: The values to be updated
         """
         update_placeholders = [f"{column} = ?" for column in criteria.keys()]
         update_criteria = " AND ".join(update_placeholders)

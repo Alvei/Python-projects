@@ -8,7 +8,7 @@
 import sys
 from datetime import datetime
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
 import requests
 from database import DatabaseManager  # Persistence layer
 
@@ -113,7 +113,8 @@ class ImportGitHubStarsCommand:
 
                 bookmarks_imported += 1
                 AddBookmarkCommand().execute(
-                    self._extract_bookmark_info(repo), timestamp=timestamp,
+                    self._extract_bookmark_info(repo),
+                    timestamp=timestamp,
                 )
 
             # The "link" header rel=next contains the link to the next page if available
@@ -137,7 +138,9 @@ class EditBookmarkCommand:
     def execute(self, data: dict) -> str:
         """ Execute persistent layer command. """
         db.update(
-            "bookmarks", {"id": data["id"]}, data["update"],
+            "bookmarks",
+            {"id": data["id"]},
+            data["update"],
         )
         return "Bookmark updated!"
 
@@ -153,7 +156,6 @@ class QuitCommand:
 def main():
     """ Test harness. """
 
-    table_name = "bookmark"
     data = {
         "title": "First Bookmark",
         "url": "https://first.com",

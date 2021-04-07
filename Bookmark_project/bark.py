@@ -17,16 +17,16 @@ def print_bookmarks(bookmarks: List) -> None:
 
 
 class Option:
-    """ Pattern: Hooks each menu option up to the command in the logical layer
-        that it should trigger.
+    """Pattern: Hooks each menu option up to the command in the logical layer
+    that it should trigger.
     """
 
     def __init__(self, name: str, command, prep_call: Callable = None) -> None:
-        """ Initialize the menu option with its key attributes.
-            PARAMETERS:
-                name: Name of the option
-                command: An instance of the command to execute when .execute() is used
-                prep_call: Optional preparation steps to call before executing the command
+        """Initialize the menu option with its key attributes.
+        PARAMETERS:
+            name: Name of the option
+            command: An instance of the command to execute when .execute() is used
+            prep_call: Optional preparation steps to call before executing the command
         """
         self.name = name
         self.command = command  # It is an instance of object from the logical layer
@@ -42,11 +42,11 @@ class Option:
             print(message)
 
     def choose(self):
-        """ Will be called when the option chosen by the user. It should
-            1- Run the preparation step if any
-            2- Pass the return value from prep step to specified command.execute()
-            3- Print the result of the execution.
-               Either the success msg or bookmark results.
+        """Will be called when the option chosen by the user. It should
+        1- Run the preparation step if any
+        2- Pass the return value from prep step to specified command.execute()
+        3- Print the result of the execution.
+           Either the success msg or bookmark results.
         """
         # message: contains the result of the command.execute().
         # It can be run with optional data from prep step
@@ -78,9 +78,9 @@ def option_choice_is_valid(choice: str, options: Dict) -> bool:
 
 
 def get_option_choice(options) -> Option:
-    """ Get valid user input from the various options provided.
-        PARAMETERS: Ordered Dictionary of options
-        RETURN: Option instance/object associated with the key input
+    """Get valid user input from the various options provided.
+    PARAMETERS: Ordered Dictionary of options
+    RETURN: Option instance/object associated with the key input
     """
     choice = input("Choose an option: ")
     while not option_choice_is_valid(choice, options):
@@ -90,12 +90,12 @@ def get_option_choice(options) -> Option:
 
 
 def get_user_input(label: str, required: bool = True) -> Optional[str]:
-    """ Get input from users. Default behavior is requiring a valid input.
-        PARAMETERS:
-          label: string to be printed when asking for user input
-          required: if input is optional, specify False
-        OUTPUTS:
-          value: returns a string that was gathered from users or None
+    """Get input from users. Default behavior is requiring a valid input.
+    PARAMETERS:
+      label: string to be printed when asking for user input
+      required: if input is optional, specify False
+    OUTPUTS:
+      value: returns a string that was gathered from users or None
     """
 
     # OR is used to convert False to None to be used in while loop
