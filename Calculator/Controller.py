@@ -15,7 +15,7 @@ class Controller:
         """ Main control function. """
         self.view.main()
 
-    def on_button_click(self, caption):
+    def on_button_click(self, caption: str):
         """ Controls the behavior of the button. """
         result = self.model.calculate(caption)
         self.view.value_var.set(result)

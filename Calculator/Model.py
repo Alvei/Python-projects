@@ -1,14 +1,15 @@
 # Model.py
+from typing import Union
 
 
 class Model:
-    def __init__(self):
+    def __init__(self) -> None:
         """ Constructor. """
-        self.previous_value = ""
-        self.value = ""
-        self.operator = ""
+        self.previous_value: str = ""
+        self.value: str = ""
+        self.operator: str = ""
 
-    def calculate(self, caption):
+    def calculate(self, caption: str) -> str:
         """ Does the calculation. """
         # print(f"In Caculate method.")
         if caption == "C":  # Clear
@@ -23,7 +24,10 @@ class Model:
             self.value = str(value / 100)
 
         elif caption == "=":
-            self.value = str(self._evaluate())
+            value = self._evaluate()
+            if ".0" in str(value):  # Check to see if it is an integer result
+                value = int(value)
+            self.value = str(value)
 
         elif caption == ".":
             if not caption in self.value:  # Check that there is not already a decimal
@@ -39,7 +43,8 @@ class Model:
                 self.value = ""  # Clear the display
         return self.value
 
-    def _evaluate(self):
-        """ Helper function to evaluate the operation between two instance variable. """
+    def _evaluate(self) -> Union[int, float]:
+        """ Helper function to evaluate the operation between two instance variable.
+        """
         print(f"evaluate {self.operator}")
         return eval(self.previous_value + self.operator + self.value)
