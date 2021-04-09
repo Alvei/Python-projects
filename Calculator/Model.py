@@ -18,7 +18,9 @@ class Model:
             self.value = self.value[1:] if self.value[0] == "-" else "-" + self.value
 
         elif caption == "%":
-            pass
+            # Convert the string to either a float or int
+            value = float(self.value) if "." in self.value else int(self.value)
+            self.value = str(value / 100)
 
         elif caption == "=":
             self.value = str(self._evaluate())
