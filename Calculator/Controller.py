@@ -1,6 +1,6 @@
 # Controller.py
 from Model import Model
-from view import View
+from View import View
 
 
 class Controller:
