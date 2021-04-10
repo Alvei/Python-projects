@@ -56,8 +56,18 @@ class View(tk.Tk):
 
         style.theme_use("alt")
 
+        # Style for numbers
+        style.configure("N.TButton", foreground="white", background="gray")
+
+        # Style for operators
+        style.configure("O.TButton", foreground="white", background="orange")
+
+        # Style for miscelleneous
+        style.configure("M.TButton", background="white")
+
     def main(self):
         """ Main view function. """
+        # print("In view main. ")
         self.mainloop()
 
     def _make_main_frame(self):
@@ -66,7 +76,7 @@ class View(tk.Tk):
         self.main_frm.pack(padx=self.PAD, pady=self.PAD)
 
     def _make_label(self):
-        """ Create an labe zone. """
+        """ Create an label zone. """
         lbl = tk.Label(
             self.main_frm,  # Put the entry in the main_frm which is a class var
             anchor="e",  # To look like a calculator
@@ -92,28 +102,49 @@ class View(tk.Tk):
         outer_frm = ttk.Frame(self.main_frm)
         outer_frm.pack()
 
-        frm = ttk.Frame(outer_frm)  # This frame is inside the frame
-        frm.pack()
-
+        is_first_row = True
         buttons_in_row = 0
 
         for caption in self.button_captions:
-            if buttons_in_row == self.MAX_BUTTONS_PER_ROW:
+            if is_first_row or buttons_in_row == self.MAX_BUTTONS_PER_ROW:
                 frm = ttk.Frame(outer_frm)
-                frm.pack()
+                frm.pack(fill="x")
+                is_first_row = False
                 buttons_in_row = 0
+
+            if isinstance(caption, int):
+                style_prefix = "N"
+            elif self._is_operator(caption):
+                style_prefix = "O"
+            else:
+                style_prefix = "M"
+
+            style_name = f"{style_prefix}.TButton"
 
             btn = ttk.Button(
                 frm,  # Put in the frame frm
                 text=caption,  # Include the following caption
                 command=(
                     lambda button=caption: self.controller.on_button_click(button)
-                ),
-            )  # Calls a common in the controller, lambda is used to pass a parameter caption
-            btn.pack(side="left")
+                ),  # Calls a common in the controller, lambda is used to pass a parameter caption
+                style=style_name,
+            )
+
+            if caption == 0:  # Make zero button wider
+                fill = "x"
+                expand = 1
+            else:
+                fill = "none"
+                expand = 0
+
+            btn.pack(fill=fill, expand=expand, side="left")
             buttons_in_row += 1
 
-    def _center_window(self):
+    def _is_operator(self, button_caption: str) -> bool:
+        """ Helper function to see if the button is an operator. """
+        return button_caption in ["/", "*", "+", "-"]
+
+    def _center_window(self) -> None:
         """ Position the window in the center. """
         self.update()  # Not sure why required?
         width = self.winfo_width()

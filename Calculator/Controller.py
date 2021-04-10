@@ -1,4 +1,5 @@
 # Controller.py
+# Example inspired by Victor Hidrogo
 from Model import Model
 from View import View
 

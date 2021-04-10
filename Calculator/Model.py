@@ -46,5 +46,5 @@ class Model:
     def _evaluate(self) -> Union[int, float]:
         """ Helper function to evaluate the operation between two instance variable.
         """
-        print(f"evaluate {self.operator}")
+        # print(f"evaluate {self.operator}")
         return eval(self.previous_value + self.operator + self.value)
