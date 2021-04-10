@@ -1,6 +1,6 @@
 # View.py
 import tkinter as tk
-from tkinter import ttk  # modern look
+from tkinter import ttk  # Mdern look
 
 
 class View(tk.Tk):
@@ -40,10 +40,21 @@ class View(tk.Tk):
 
         self.value_var = tk.StringVar()
 
+        self.config(bg="black")  # Set background of outside window to black
+
+        self._configure_button_styles()
+
         self._make_main_frame()
-        self._make_entry()
+        self._make_label()
         self._make_buttons()
-        # self._center_window()
+        self._center_window()
+
+    def _configure_button_styles(self):
+        style = ttk.Style()
+        # print(style.theme_names()) # Used to get list of themes used on this computer
+        # print(style.theme_use()) # Used to see which one is used
+
+        style.theme_use("alt")
 
     def main(self):
         """ Main view function. """
@@ -53,6 +64,18 @@ class View(tk.Tk):
         """ Create the borders. """
         self.main_frm = ttk.Frame(self)
         self.main_frm.pack(padx=self.PAD, pady=self.PAD)
+
+    def _make_label(self):
+        """ Create an labe zone. """
+        lbl = tk.Label(
+            self.main_frm,  # Put the entry in the main_frm which is a class var
+            anchor="e",  # To look like a calculator
+            textvariable=self.value_var,
+            bg="black",
+            fg="white",
+            font=("Ariel", 30),
+        )
+        lbl.pack(fill="x")
 
     def _make_entry(self):
         """ Create an entry zone. """
