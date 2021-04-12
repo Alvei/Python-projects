@@ -16,12 +16,19 @@ def print_bookmarks(bookmarks: List) -> None:
         print("\t".join(str(field) if field else "" for field in bookmark))
 
 
+def format_bookmark(bookmark):
+    """ XXX """
+    return "\t".join(str(field) if field else "" for field in bookmark)
+
+
 class Option:
     """Pattern: Hooks each menu option up to the command in the logical layer
     that it should trigger.
     """
 
-    def __init__(self, name: str, command, prep_call: Callable = None) -> None:
+    def __init__(
+        self, name: str, command, prep_call: Callable = None, success_message="{result}"
+    ) -> None:
         """Initialize the menu option with its key attributes.
         PARAMETERS:
             name: Name of the option
@@ -33,6 +40,7 @@ class Option:
         self.prep_call = (
             prep_call  # Function used to gather data from users for specific command
         )
+        self.success_message = success_message
 
     def _handle_message(self, message: Union[str, List]) -> None:
         """ Print the result of executing the command. """
@@ -42,17 +50,27 @@ class Option:
             print(message)
 
     def choose(self):
-        """Will be called when the option chosen by the user. It should
-        1- Run the preparation step if any
-        2- Pass the return value from prep step to specified command.execute()
-        3- Print the result of the execution.
-           Either the success msg or bookmark results.
+        """ Will be called when the option chosen by the user. It should
+            1- Run the preparation step if any
+            2- Pass the return value from prep step to specified command.execute()
+            3- Print the result of the execution 
+            Either the success msg or bookmark results.
         """
         # message: contains the result of the command.execute().
         # It can be run with optional data from prep step
         data = self.prep_call() if self.prep_call else None
-        message = self.command.execute(data) if data else self.command.execute()
-        self._handle_message(message)
+        success, result = self.command.execute(data)
+
+        formatted_result = ""
+
+        if isinstance(result, list):
+            for bookmark in result:
+                formatted_result += "\n" + format_bookmark(bookmark)
+        else:
+            formated_result = result
+
+        if success:
+            print(self.success_message.format(result=formatted_result))
 
     def __str__(self):
         """ Overload printing to allow printing the command name. """
@@ -156,8 +174,9 @@ def loop():
                 "Add a bookmark",
                 commands.AddBookmarkCommand(),
                 prep_call=get_new_bookmark_data,
+                success_message="Bookmark added!",
             ),
-            "B": Option("List bookmarks by date", commands.ListBookmarksCommand()),
+            "B": Option("List bookmarks by date", commands.ListBookmarksCommand(),),
             "T": Option(
                 "List bookmarks by title",
                 commands.ListBookmarksCommand(order_by="title"),
@@ -166,20 +185,24 @@ def loop():
                 "Edit a bookmark",
                 commands.EditBookmarkCommand(),
                 prep_call=get_new_bookmark_info,
+                success_message="Bookmark updated!",
             ),
             "D": Option(
                 "Delete a bookmark",
                 commands.DeleteBookmarkCommand(),
                 prep_call=get_bookmark_id_for_deletion,
+                success_message="Bookmark deleted!",
             ),
-            "G": Option(  # <4>
+            "G": Option(
                 "Import GitHub stars",
                 commands.ImportGitHubStarsCommand(),
                 prep_call=get_github_import_options,
+                success_message="Imported {result} bookmarks from starred repos!",
             ),
             "Q": Option("Quit", commands.QuitCommand()),
         }
     )
+
     print_options(options)
 
     chosen_option = get_option_choice(options)  # Create an instance of Option
