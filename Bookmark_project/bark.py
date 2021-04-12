@@ -16,14 +16,14 @@ def print_bookmarks(bookmarks: List) -> None:
         print("\t".join(str(field) if field else "" for field in bookmark))
 
 
-def format_bookmark(bookmark):
-    """ XXX """
-    return "\t".join(str(field) if field else "" for field in bookmark)
+def format_bookmark(bookmark: str) -> str:
+    """ Formats a bookmark """
+    return "\t".join(str(field) if field else " " for field in bookmark)
 
 
 class Option:
-    """Pattern: Hooks each menu option up to the command in the logical layer
-    that it should trigger.
+    """ Pattern: Hooks each menu option up to the command in the logical layer
+        that it should trigger.
     """
 
     def __init__(
@@ -34,12 +34,11 @@ class Option:
             name: Name of the option
             command: An instance of the command to execute when .execute() is used
             prep_call: Optional preparation steps to call before executing the command
+            success_message: Message to be displayed once command complted
         """
         self.name = name
-        self.command = command  # It is an instance of object from the logical layer
-        self.prep_call = (
-            prep_call  # Function used to gather data from users for specific command
-        )
+        self.command = command
+        self.prep_call = prep_call
         self.success_message = success_message
 
     def _handle_message(self, message: Union[str, List]) -> None:
@@ -53,22 +52,24 @@ class Option:
         """ Will be called when the option chosen by the user. It should
             1- Run the preparation step if any
             2- Pass the return value from prep step to specified command.execute()
-            3- Print the result of the execution 
+            3- Print the result of the execution
             Either the success msg or bookmark results.
         """
-        # message: contains the result of the command.execute().
+
         # It can be run with optional data from prep step
         data = self.prep_call() if self.prep_call else None
         success, result = self.command.execute(data)
 
         formatted_result = ""
 
+        # Creates the message to be printed
         if isinstance(result, list):
             for bookmark in result:
                 formatted_result += "\n" + format_bookmark(bookmark)
         else:
             formated_result = result
 
+        # Prints the message if it is a success
         if success:
             print(self.success_message.format(result=formatted_result))
 
