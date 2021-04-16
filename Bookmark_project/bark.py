@@ -214,7 +214,7 @@ def loop():
 
 
 if __name__ == "__main__":
-    commands.CreateBookmarksTableCommand().execute()
+    # commands.CreateBookmarksTableCommand().execute()
 
     while True:
         loop()

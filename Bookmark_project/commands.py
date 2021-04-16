@@ -8,16 +8,16 @@
 import sys
 from datetime import datetime
 import logging
-from typing import Dict, List
-import requests
+from typing import Dict
 from abc import ABC, abstractmethod
-from database import DatabaseManager  # Persistence layer
+import requests
+from persistence import BookmarkDatabase  # Persistence layer
 
 
 logging.basicConfig(level=logging.DEBUG)
 # logging.basicConfig(level=logging.CRITICAL)
 
-db = DatabaseManager("bookmarks.db")  # Create instance of data base
+persistence = BookmarkDatabase()  # Create instance of data base
 
 
 class Command(ABC):
@@ -27,23 +27,6 @@ class Command(ABC):
     def execute(self, data):
         """ Must have method. """
         raise NotImplementedError("\n*** Commands must implement an execute method")
-
-
-class CreateBookmarksTableCommand(Command):
-    """ Create a bookmark table. """
-
-    def execute(self, data=None) -> None:
-        """ Execute persistent layer command. That also includes definition of table. """
-        db.create_table(
-            "bookmarks",
-            {
-                "id": "integer primary key autoincrement",
-                "title": "text not null",
-                "url": "text not null",
-                "notes": "text",
-                "date_added": "text not null",
-            },
-        )
 
 
 class AddBookmarkCommand(Command):
@@ -56,7 +39,7 @@ class AddBookmarkCommand(Command):
                 result:
          """
         data["date_added"] = timestamp or datetime.utcnow().isoformat()
-        db.add("bookmarks", data)
+        persistence.create(data)
         return True, None
 
 
@@ -69,7 +52,7 @@ class ListBookmarksCommand(Command):
 
     def execute(self, data=None) -> tuple:
         """ Execute persistent layer command. """
-        return True, db.select("bookmarks", order_by=self.order_by).fetchall()
+        return True, persistence.list(order_by=self.order_by)
 
 
 class ImportGitHubStarsCommand(Command):
@@ -141,7 +124,7 @@ class DeleteBookmarkCommand(Command):
 
     def execute(self, data: int) -> tuple:
         """ Execute persistent layer command. """
-        db.delete("bookmarks", {"id": data})
+        persistence.delete(data)
         return True, None
 
 
@@ -150,9 +133,7 @@ class EditBookmarkCommand(Command):
 
     def execute(self, data: dict) -> tuple:
         """ Execute persistent layer command. """
-        db.update(
-            "bookmarks", {"id": data["id"]}, data["update"],
-        )
+        persistence.edit(data["id"], data["update"])
         return True, None
 
 
@@ -173,12 +154,10 @@ def main():
         "notes": "text",
     }
 
-    CreateBookmarksTableCommand().execute()
     AddBookmarkCommand().execute(data)
     AddBookmarkCommand().execute(data)
     DeleteBookmarkCommand().execute(3)
     my_bookmarks = ListBookmarksCommand().execute()
-    print(type(CreateBookmarksTableCommand()))
 
     for my_bookmark in my_bookmarks:
         print(my_bookmark)
